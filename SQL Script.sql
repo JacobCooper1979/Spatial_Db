@@ -2,16 +2,15 @@
 The task is to create a spatial database with 10 ruff town polygon approximations and 100 Points. 
 I've chosen to use my general area to try and find different types of IT businesses in my local area. 
 This will help me identify what field of IT I should specialise in and what IT jobs are available in my general area.
-Created by Jacob Cooper.
+Created by Jacob Cooper. JacobCooper_SpatialDb_ID:30466032.
 */
 
--- Database: JacobCooper_SpatialDb_ID:30466032
 
--- DROP DATABASE IF EXISTS "JacobCooper_SpatialDb_ID:30466032";
+
 DROP DATABASE IF EXISTS "JacobCooper_SpatialDb_ID:30466032";
 
-BEGIN;
 
+BEGIN TRANSACTION;
 /* Creating the database */
 CREATE DATABASE "JacobCooper_SpatialDb_ID:30466032"
     WITH
@@ -26,15 +25,24 @@ COMMENT ON DATABASE "JacobCooper_SpatialDb_ID:30466032"
 
 COMMIT;
 
-BEGIN;
-/* Adding the extension postgis to make this database a spatial database. */
-CREATE EXTENSION postgis;
+
+-- after creating the new database these drop commands will ensure that these tables and types do not exist in the database.
+BEGIN TRANSACTION;
+
+DROP TYPE IF EXISTS BUSINESS_TYPE CASCADE;
+DROP TYPE IF EXISTS TOWN_TYPE CASCADE;
+DROP TABLE IF EXISTS buis_location_point CASCADE;
+DROP TABLE IF EXISTS ruff_town_Locations CASCADE;
 
 COMMIT;
 
-BEGIN;
+BEGIN TRANSACTION;
+-- Adding the extension postgis to make this database a spatial database. 
+CREATE EXTENSION postgis;
+COMMIT;
 
-/* Setting the town_type as Enums differentiates between my home town, local towns, and cities. SArea is for the surrounding areas */
+BEGIN TRANSACTION;
+/* Setting the town_type as Enums differentiates between my home town, local towns, and cities. SArea is for the surrounding areas. */
 CREATE TYPE TOWN_TYPE AS ENUM (
 	'Home Town',
 	'Town',
@@ -51,16 +59,16 @@ CREATE TABLE ruff_town_Locations (
 );
 
 /*Enums to class each type of buissness some buissness coverlaped with their services so i had to catagorise them
- in what they mainly specialise in.*/
+ in what they mainly specialise in. Most of these buissness offer multiple services so iv picked the type that that the buissness mainly focus on.*/
 
 CREATE TYPE BUSINESS_TYPE AS ENUM (
-    'Website Development Business',          -- For businesses focused on web design website development and hosting.
-    'Hosting Business',                      -- For businesses focus on providing hosting services only.
-    'Software Development Business',         -- For businesses focused on specialise software development or software solutions.
-    'Device Repair Business',                -- For businesses focused on specializing in repairing computers, phones, and other devices.
-    'General IT Consultation & Services',    -- For businesses focused on offering IT consulting, support, and other related IT service.
-    'Digital Marketing & SEO',               -- For businesses focused on online marketing, SEO, and branding.
-    'Telecommunications Business'            -- For businesses focused on offering telecommunications services.
+    'Website Development Business',          
+    'Hosting Business',                      
+    'Software Development Business',         
+    'Device Repair Business',                
+    'General IT Consultation & Services',    
+    'Digital Marketing & SEO',               
+    'Telecommunications Business'            
 );
 	
 
@@ -72,13 +80,12 @@ CREATE TABLE buis_location_point (
 	business_type BUSINESS_TYPE,
     location GEOMETRY(Point, 4326)
 );
-
-
 COMMIT;
 
-BEGIN;
 
-/* Towns into the Towns_Polygon Table. */
+/* Inserting data into ruff_town_Locations table for the towns i have selected */
+BEGIN TRANSACTION;
+
 INSERT INTO ruff_town_Locations (town_name, town_type, boundary)
 VALUES (
     'Newee Creek',
@@ -301,16 +308,16 @@ VALUES (
 
 COMMIT;
 
-BEGIN;
 
-/* Ensuring all Data was entered correctly. */
+
+/* Displaying all Data to ensure it was added correctly was entered correctly. */
 SELECT * FROM ruff_town_Locations;
 
-COMMIT;
 
-BEGIN;
 
-/* Insert points for buissness locations into buis_location_point. */
+BEGIN TRANSACTION;
+
+/* Inserting data into the buis_location_point table for each buissness that i have found in an area id potentally want to live in and work in. */
 INSERT INTO buis_location_point (name, description, business_type, location)
 VALUES (
     'Nambucca Social Space',
@@ -1122,15 +1129,135 @@ VALUES (
 
 COMMIT;
 
-BEGIN;
+
+
 /* Ensuring all of the data was inserted correctly. */
 SELECT * FROM buis_location_point
 
-COMMIT;
 
-/* SQL Queries inner 
-join, outer join.
-SQL statement that uses the GROUP BY, HAVING operators to select and agregation of the data(SUM,AVG,COUNT).
+-- SQL Queries Tasks.
+
+
+
+/*
+Write SQL statements to explain the difference between an inner join and an outer join. Explain the purpose of your query for your database solution.
 */
+
+/* Inner joins are used to combine two tables based on specific conditions that only have matching fields and will display where the joins meet. If a row does not match, it will be excluded from the results.
+Outer Joins join two tables together and have three types: 
+left outer, right outer and full outer joins. 
+Left outer joins include all rows from the left table and match them to rows on the right from the other table rows from the right table. 
+Any fields that do not match will be null. The same applies to right outer joins. The right outer joins include all rows from the right table and match them to the left table. 
+Any fields that do not have matching data will be null. The full outer join includes all rows from both tables Left and Right, 
+creating a full outer join. Any rows without matching data will be null.*/
+
+/* 
+Inner Join: 
+This inner join finds the jobs inside the coffs harbour boundary but only returns the rows when there is a  match found between buis_location_point and ruff_townLocations tables. 
+This is defined by the ST_Within condition for the spatial database that stores the gemoetric locations this ensures that it only returns results that are within the Coffs Harbour boundry.
+The purpose of this query is to Clearly show me how many IT buissness there are in coffs harbour and provides me with a of all of its data from both of the two tables that match,
+the buissness name location town name buissness type and buisness location. 
+*/
+SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type, buis_loc.location
+FROM   buis_location_point buis_loc
+INNER JOIN ruff_town_Locations town ON ST_Within(buis_loc.location, town.boundary)
+WHERE town.town_name = 'Coffs Harbour';
+
+/* 
+Full Outer Join:
+the purpose of this query is to show that as this is a spatial database, 
+i cannot do a full outter join as you get an error message like this ERROR:  FULL JOIN is only supported with merge-joinable or hash-joinable join conditions SQL state: 0A000.
+This is becuse im using a ST_Within function for geometric computations and it is to complex for the full outer join to work.
+The purpose of this query was to prove i am getting an error creating a full outer join.
+*/
+SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type, buis_loc.location
+FROM buis_location_point buis_loc
+FULL OUTER JOIN ruff_town_Locations town  ON ST_Within(buis_loc.location, town.boundary)
+WHERE town.town_name = 'Coffs Harbour' OR buis_loc.name IS NOT NULL;
+
+/* 
+The purpose of this query is to simulated a full outer join by creating a left outer join and a right outer join and using the UNION function.
+This creates a union between the two joins and merges them together. 
+*/
+-- Left Outer Join 
+SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type, buis_loc.location
+FROM buis_location_point  buis_loc 
+LEFT OUTER JOIN ruff_town_Locations town ON ST_Within(buis_loc.location, town.boundary)
+WHERE  town.town_name = 'Coffs Harbour' OR town.town_name IS NULL
+
+-- unified the two queries together creating a full outer join.
+UNION
+
+-- Right Outer Join 
+SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name,  buis_loc.business_type,buis_loc.location
+FROM ruff_town_Locations town 
+RIGHT OUTER JOIN buis_location_point buis_loc ON ST_Within(buis_loc.location, town.boundary)
+WHERE  town.town_name = 'Coffs Harbour' OR buis_loc.name IS NOT NULL;
+
+
+
+
+
+
+/*
+Write an SQL statement that correctly uses the ‘GROUP BY’ and ‘HAVING’ operators to select an aggregation of data (e.g. SUM, AVG, COUNT). 
+Explain the purpose of your query for your database solution.
+*/
+
+/*
+This query uses the GROUP BY, HAVING, COUNT, AVG statements, and using the aggregated data from buisiness_type,
+allows for the calculation of the number of business types by using count while also using the AVG  amount of buissness_types and displaying them in descending order. 
+This query allows me to find how many types of IT businesses are in my general location and shows them in descending order to find what type of IT work is around in my area.
+Clearly showing me there are not many dedicated web only hosting buissness but a lot of software development buissness and general IT consultation & services buissness.
+*/
+SELECT  business_type, COUNT(*) AS busis_count,  AVG(COUNT(*)) OVER () AS avg_busi_type  
+FROM  buis_location_point GROUP BY  business_type
+HAVING  COUNT(*) > 2  ORDER BY busis_count DESC;  
+
+
+-- Write an SQL statement that uses an inner SQL query (SELECT). Explain the purpose of your query for your database solution.
+
+
+/*
+The purpose of a inner select query is to help simplify more complicated queries using the IN statement.
+thie purpose of this query is to find software development buissness located in coffs harbour.
+This is done by selecting the buissness type from the buis_location_point table to find only the software development,
+buissness using and AND LOCATION IN statement to selection the location from ruff_town_Locations that only have the coffs harbour boundries.
+*/
+SELECT name,business_type, location
+FROM buis_location_point
+WHERE business_type = 'Software Development Business'
+AND location IN (
+    SELECT location  FROM  ruff_town_Locations
+    WHERE town_name = 'Coffs Harbour'
+    AND ST_Within(buis_location_point.location,ruff_town_Locations.boundary)
+);
+
+
+
+-- Spatial Database Tasks.
+/*
+You will need to be able to query your database as follows:
+• Given a specific point (set of x,y coordinates), you are to find all polygons within which this Point is contained.
+• Retrieve the nearest polygon if the Point does not lie within a specific polygon.
+*/
+
+/*
+Trying to find this exact buissness the name of the buisness is SAP Australia Pty Ltd - Brisbane location and in what polygon area the buissness is stored in.
+By selecting the id, town name and boundry from the contained poloygons in the spatial database. from the table ruff_town_locations.
+Using the exact cordinates that are -27.46553882442668, 153.02763742582962
+*/ 
+WITH contained_polygons AS  (
+    SELECT  id, town_name,town_type, boundary
+    FROM  ruff_town_Locations
+    WHERE ST_Contains(boundary,ST_SetSRID(ST_MakePoint(-27.46553882442668, 153.02763742582962), 4326))
+)
+
+--This statement is used to show the data if it is found within a polygon
+SELECT *
+FROM  contained_polygons
+
+
+
 
 
