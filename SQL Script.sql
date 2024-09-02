@@ -1195,10 +1195,6 @@ RIGHT OUTER JOIN buis_location_point buis_loc ON ST_Within(buis_loc.location, to
 WHERE  town.town_name = 'Coffs Harbour' OR buis_loc.name IS NOT NULL;
 
 
-
-
-
-
 /*
 Write an SQL statement that correctly uses the ‘GROUP BY’ and ‘HAVING’ operators to select an aggregation of data (e.g. SUM, AVG, COUNT). 
 Explain the purpose of your query for your database solution.
