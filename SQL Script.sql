@@ -4,11 +4,9 @@ I've chosen to use my general area to try and find different types of IT busines
 This will help me identify what field of IT I should specialise in and what IT jobs are available in my general area.
 Created by Jacob Cooper. JacobCooper_SpatialDb_ID:30466032.
 */
-
-
-
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+--Create Database, tables, drop statements and insert statements 
 DROP DATABASE IF EXISTS "JacobCooper_SpatialDb_ID:30466032";
-
 
 BEGIN TRANSACTION;
 /* Creating the database */
@@ -50,7 +48,7 @@ CREATE TYPE TOWN_TYPE AS ENUM (
 	'SArea'
 );
 
-/* Creating Tables for Polygon locations. */
+Creating Tables for Polygon locations. 
 CREATE TABLE ruff_town_Locations (
     id SERIAL PRIMARY KEY,
     town_name VARCHAR(100),
@@ -58,9 +56,21 @@ CREATE TABLE ruff_town_Locations (
     boundary GEOMETRY(Polygon, 4326) 
 );
 
-/*Enums to class each type of buissness some buissness coverlaped with their services so i had to catagorise them
- in what they mainly specialise in. Most of these buissness offer multiple services so iv picked the type that that the buissness mainly focus on.*/
 
+
+CREATE TABLE buis_location_point (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    description TEXT,
+    business_type VARCHAR(100),  
+    location GEOMETRY(Point, 4326)
+);
+
+
+/*Enums to class each type of buissness some buissness coverlaped with their services so i had to catagorise them
+ in what they mainly specialise in. Most of these buissness offer multiple services so iv picked the type that that the buissness mainly focus on
+ i was going to use enums but it became to difficult and time consuming for the PLSQL commands.*/
+/*
 CREATE TYPE BUSINESS_TYPE AS ENUM (
     'Website Development Business',          
     'Hosting Business',                      
@@ -81,7 +91,16 @@ CREATE TABLE buis_location_point (
     location GEOMETRY(Point, 4326)
 );
 COMMIT;
-
+*/
+-- new table.
+CREATE TABLE buis_location_point (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    description TEXT,
+    business_type TEXT,  
+    location GEOMETRY(Point, 4326)
+);
+COMMIT;
 
 /* Inserting data into ruff_town_Locations table for the towns i have selected */
 BEGIN TRANSACTION;
@@ -308,13 +327,6 @@ VALUES (
 
 COMMIT;
 
-
-
-/* Displaying all Data to ensure it was added correctly was entered correctly. */
-SELECT * FROM ruff_town_Locations;
-
-
-
 BEGIN TRANSACTION;
 
 /* Inserting data into the buis_location_point table for each buissness that i have found in an area id potentally want to live in and work in. */
@@ -323,7 +335,7 @@ VALUES (
     'Nambucca Social Space',
     'Website designer specialising in Web Design & Local SEO.',
 	'Website Development Business',
-    ST_SetSRID(ST_MakePoint(153.00430931820358, -30.63869655040028), 4326)
+    ST_SetSRID(ST_MakePoint(-30.63869655040028, 153.00430931820358), 4326)
  );
 
 INSERT INTO buis_location_point (name, description, business_type, location)
@@ -1129,13 +1141,14 @@ VALUES (
 
 COMMIT;
 
-
-
+/* Displaying all Data to ensure it was added correctly was entered correctly. */
+SELECT * FROM ruff_town_Locations;
 /* Ensuring all of the data was inserted correctly. */
-SELECT * FROM buis_location_point
+SELECT * FROM buis_location_point;
 
 
--- SQL Queries Tasks.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--SQL Queries Tasks.
 
 
 
@@ -1163,6 +1176,12 @@ FROM   buis_location_point buis_loc
 INNER JOIN ruff_town_Locations town ON ST_Within(buis_loc.location, town.boundary)
 WHERE town.town_name = 'Coffs Harbour';
 
+
+SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type, buis_loc.location
+FROM   buis_location_point buis_loc
+INNER JOIN ruff_town_Locations town ON ST_Within(buis_loc.location, town.boundary)
+WHERE town.town_name IN ('Nambucca Heads', 'Coffs Harbour');
+
 /* 
 Full Outer Join:
 the purpose of this query is to show that as this is a spatial database, 
@@ -1170,8 +1189,8 @@ i cannot do a full outter join as you get an error message like this ERROR:  FUL
 This is becuse im using a ST_Within function for geometric computations and it is to complex for the full outer join to work.
 The purpose of this query was to prove i am getting an error creating a full outer join.
 */
-SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type, buis_loc.location
-FROM buis_location_point buis_loc
+SELECT buis_loc.name AS  business_name, buis_loc.description, town.town_name,  buis_loc.business_type, buis_loc.location
+FROM  buis_location_point buis_loc
 FULL OUTER JOIN ruff_town_Locations town  ON ST_Within(buis_loc.location, town.boundary)
 WHERE town.town_name = 'Coffs Harbour' OR buis_loc.name IS NOT NULL;
 
@@ -1180,8 +1199,8 @@ The purpose of this query is to simulated a full outer join by creating a left o
 This creates a union between the two joins and merges them together. 
 */
 -- Left Outer Join 
-SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type, buis_loc.location
-FROM buis_location_point  buis_loc 
+SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type,  buis_loc.location
+FROM  buis_location_point  buis_loc 
 LEFT OUTER JOIN ruff_town_Locations town ON ST_Within(buis_loc.location, town.boundary)
 WHERE  town.town_name = 'Coffs Harbour' OR town.town_name IS NULL
 
@@ -1193,6 +1212,8 @@ SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name,  bu
 FROM ruff_town_Locations town 
 RIGHT OUTER JOIN buis_location_point buis_loc ON ST_Within(buis_loc.location, town.boundary)
 WHERE  town.town_name = 'Coffs Harbour' OR buis_loc.name IS NOT NULL;
+
+
 
 
 /*
@@ -1221,17 +1242,18 @@ This is done by selecting the buissness type from the buis_location_point table 
 buissness using and AND LOCATION IN statement to selection the location from ruff_town_Locations that only have the coffs harbour boundries.
 */
 SELECT name,business_type, location
-FROM buis_location_point
+FROM  buis_location_point
 WHERE business_type = 'Software Development Business'
 AND location IN (
     SELECT location  FROM  ruff_town_Locations
     WHERE town_name = 'Coffs Harbour'
-    AND ST_Within(buis_location_point.location,ruff_town_Locations.boundary)
+    AND  ST_Within(buis_location_point.location,ruff_town_Locations.boundary)
 );
 
 
 
--- Spatial Database Tasks.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Spatial Database Tasks.
 /*
 You will need to be able to query your database as follows:
 • Given a specific point (set of x,y coordinates), you are to find all polygons within which this Point is contained.
@@ -1246,14 +1268,287 @@ Using the exact cordinates that are -27.46553882442668, 153.02763742582962
 WITH contained_polygons AS  (
     SELECT  id, town_name,town_type, boundary
     FROM  ruff_town_Locations
-    WHERE ST_Contains(boundary,ST_SetSRID(ST_MakePoint(-27.46553882442668, 153.02763742582962), 4326))
-)
-
---This statement is used to show the data if it is found within a polygon
-SELECT *
-FROM  contained_polygons
+    WHERE  ST_Contains(boundary,ST_SetSRID(ST_MakePoint(-27.46553882442668, 153.02763742582962), 4326))
 
 
 
 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/* Write a PL/SQL block(s) demonstrating the programming constructs of sequence, selection, and iteration.
+Write a Stored Procedure and call it from your PL/SQL block.
+Write an ‘After Insert’ Trigger to determine whether the addition of a new spatial point is within a pre-determined bounding box. */
 
+/* --This PL/SQL code is ment to search through the buis_location_point to find if a buissness already exists if it will not insert a new entry.
+return the buissness already exists and if it doesn not exist it will enter it into a new boundry and also check to see what boundry box it belons to if it does belong in one.
+ */
+
+-- Drop existing objects for testing
+BEGIN TRANSACTION;
+
+DROP TRIGGER IF EXISTS  trg_enforce_bounding_box ON  buis_location_point;
+DROP TRIGGER IF EXISTS trg_check_for_duplicates  ON buis_location_point;
+DROP  TRIGGER IF EXISTS trg_check_for_duplicates_update ON buis_location_point;
+
+DROP FUNCTION  IF EXISTS trg_check_within_bounding_box();
+DROP FUNCTION IF EXISTS trg_check_for_duplicates();
+DROP  FUNCTION IF EXISTS find_bounding_box(GEOMETRY(Point, 4326));
+
+DROP SEQUENCE  IF EXISTS  location_id_seq;
+
+DROP TABLE  IF EXISTS  buis_location_point;
+
+COMMIT;
+
+-- Creating the sequence and ensuring the max ID gets set correctly.
+BEGIN TRANSACTION;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'location_id_seq') 
+    THEN
+        
+        EXECUTE 'CREATE SEQUENCE location_id_seq START WITH 1 INCREMENT BY 1';
+    END IF;
+END $$;
+
+-- This ensures the correct ID is set correctly for the sequence.
+DO $$
+BEGIN
+    PERFORM setval('location_id_seq',  COALESCE((SELECT MAX(id) FROM buis_location_point), 0) + 1,  false);
+END $$;
+
+COMMIT;
+
+-- Creating the function for find if a poin is in a bounding box.
+BEGIN TRANSACTION;
+
+CREATE OR  REPLACE FUNCTION find_bounding_box(business_point GEOMETRY(Point, 4326)) 
+RETURNS TEXT  AS $$
+DECLARE
+    bounding_box  GEOMETRY(Polygon, 4326);
+    bounding_box_name TEXT;
+BEGIN
+    FOR  bounding_box 
+    IN
+         SELECT boundary FROM  ruff_town_Locations
+        WHERE ST_Contains(boundary, business_point)
+    LOOP
+        bounding_box_name := (SELECT town_name FROM  ruff_town_Locations WHERE  boundary = bounding_box);
+         RETURN bounding_box_name;
+    END LOOP;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;
+
+-- Creating the procedure to insert business into the buis_location_point table with exeption handling that ensures entries are not null 
+BEGIN TRANSACTION;
+
+CREATE OR REPLACE PROCEDURE insert_business(
+    business_name VARCHAR(100),
+    business_description TEXT,
+    business_type VARCHAR(100),
+    business_latitude DOUBLE PRECISION,
+    business_longitude DOUBLE PRECISION
+
+) AS $$
+DECLARE
+    business_point GEOMETRY(Point, 4326);
+    bounding_box_name TEXT;
+    business_exists BOOLEAN;
+    new_business_id INTEGER;
+BEGIN
+    -- Exeption handling to ensure all entries are not null using trim to remove any white spaces to make it look nicer.
+    IF business_name IS NULL OR LENGTH(TRIM(business_name)) = 0 THEN
+        RAISE EXCEPTION 'You must enter in a business name ';
+    ELSIF  business_description IS NULL OR LENGTH(TRIM(business_description)) = 0 THEN
+        RAISE EXCEPTION  'You must enter in a business description';
+    ELSIF business_type IS NULL OR LENGTH(TRIM(business_type)) = 0 
+    THEN
+        RAISE EXCEPTION 'You must enter in a business type';
+    ELSIF  business_latitude IS NULL THEN
+        RAISE EXCEPTION  'You must enter in a business latitude';
+    ELSIF  business_longitude IS NULL THEN
+        RAISE EXCEPTION 'You must enter in a business longitude';
+    END IF;
+
+    -- Validating the buisness latitude and lonitudes are correctly formated.
+    BEGIN
+        PERFORM  business_latitude::DOUBLE PRECISION;
+        PERFORM  business_longitude::DOUBLE PRECISION;
+    EXCEPTION
+        WHEN  invalid_text_representation 
+        THEN
+
+            RAISE EXCEPTION 'Latitude and longitude must must be correctly formateed as double precision';
+    END;
+
+    BEGIN
+        -- Using the ST_SetSRID function that also uses the ST_MakePoint function to create the buissness point for its location. 
+        business_point := ST_SetSRID(ST_MakePoint(business_longitude, business_latitude), 4326);
+
+        -- Using validation checks to ensure the point is valid before proceding.
+        IF business_point IS NULL THEN
+            RAISE EXCEPTION 'the business point is invalid it could be either an issue with the latitude or longitude';
+        END IF;
+
+        -- Searching to see if there is a bounding box that the business_point falls into.
+        bounding_box_name := find_bounding_box(business_point);
+
+        IF bounding_box_name IS NOT NULL 
+        THEN
+             RAISE NOTICE 'The buisness is located within: %', bounding_box_name;
+        ELSE
+           
+            RAISE NOTICE 'Business is in an unkown area';
+        END IF;
+
+        -- Ensuring the buissness doesnt aready exist as an entry into the table.
+        SELECT EXISTS (
+            SELECT 1 FROM buis_location_point
+            -- by making all characters not capitals and looking at buissness point that already exists helps to detemin if the buissness already exists and is just renamed slightly differently due to human error.
+            WHERE  LOWER(name) =  LOWER(business_name)
+            AND  ST_DWithin(location,  business_point, 0.0001)
+        ) INTO  business_exists;
+
+        IF business_exists 
+        THEN
+            -- raising a notice to say the buissness already exists and the table that it exists in.
+            RAISE NOTICE 'Business already exists in buis_location_point';
+             RETURN;
+        END IF;
+
+        -- Insert the new business and creating the new ID.
+        INSERT INTO buis_location_point (name, description, business_type, location)
+        VALUES (
+            business_name,
+            business_description,
+            business_type,
+            business_point
+        )
+         RETURNING id INTO new_business_id;
+
+        
+        RAISE NOTICE 'The buissness has been sucessfuly inserted with the ID of: %', new_business_id;
+        
+    EXCEPTION
+
+        WHEN unique_violation 
+        THEN
+             RAISE NOTICE 'Could not insert this buissness as it already exists.';
+        WHEN data_exception THEN
+             RAISE NOTICE 'Data exception: %', SQLERRM;
+        WHEN invalid_text_representation THEN
+            
+            RAISE NOTICE 'Invalid data type provided for one of the fields.';
+        WHEN OTHERS 
+        THEN
+            RAISE NOTICE 'There was an error during business insertion process.: %', SQLERRM;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;
+
+-- Create triggers to check for duplicate entries and finding the bounding boxes.
+BEGIN TRANSACTION;
+
+-- After Trigger function to check if the buissness belongs to a bounding box after inserting into the table.
+CREATE OR  REPLACE 
+FUNCTION trg_check_within_bounding_box() 
+RETURNS  TRIGGER AS $$
+DECLARE
+    bounding_box_name  TEXT;
+BEGIN
+    BEGIN
+
+        -- Checking if the buissness is in a bounding box.
+        bounding_box_name := find_bounding_box(NEW.location);
+
+        -- Creating a notice if the buissness does belong to a bounding box.
+        IF bounding_box_name IS NOT NULL THEN
+            RAISE NOTICE 'The buissness is located within this Area: %', bounding_box_name;
+        ELSE
+        -- Creating a notice if the buissenss is outsoide of any bounding box.
+            RAISE NOTICE 'The buissness is located ourside of all known areas.';
+        END IF;
+
+    EXCEPTION
+        WHEN OTHERS THEN
+        -- Rassing an exeption if an error occurs for testing.
+            RAISE NOTICE 'Error during bounding box check: %', SQLERRM;
+    END;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to enforce bounding box check before inserting or updating a business.
+CREATE TRIGGER trg_enforce_bounding_box
+BEFORE INSERT OR UPDATE ON buis_location_point
+FOR EACH ROW
+EXECUTE FUNCTION trg_check_within_bounding_box();
+
+COMMIT;
+
+BEGIN TRANSACTION;
+
+-- Trigger function to check for duplicates before inserting a new business.
+CREATE OR  REPLACE FUNCTION trg_check_for_duplicates() 
+RETURNS TRIGGER  AS $$
+DECLARE
+    business_exists BOOLEAN;
+BEGIN
+    -- Checking to see if any business with the same name and location already exists.
+    SELECT EXISTS (
+        SELECT 1 FROM buis_location_point
+        WHERE LOWER(name) = LOWER(NEW.name)
+        -- Allowing for small precision differences to ensure a similar position isnt considered as a duplicate.
+        AND ST_DWithin(location, NEW.location, 0.0001) 
+         -- Ensure its not comparing with is own ID as i was having errors with that.
+        AND id <> NEW.id  
+    ) INTO business_exists;
+
+    -- If a duplicate buissness is found raise a notice and skip the insert processs.
+    IF business_exists 
+    THEN
+
+        RAISE NOTICE 'Duplicate found: Business "%", located at the same place, already exists.', NEW.name;
+        -- Skip the insert.
+        RETURN NULL; 
+    ELSE
+        RAISE NOTICE 'No duplicates found for Business "%". Proceeding with insert.', NEW.name;
+        -- Proceed with the insertion process.
+        RETURN NEW; 
+    END IF;
+END;
+
+$$ LANGUAGE plpgsql;
+
+-- Trigger to check for duplicates before inserting a new business.
+CREATE TRIGGER trg_check_for_duplicates
+
+BEFORE INSERT ON buis_location_point
+FOR EACH 
+ROW
+EXECUTE FUNCTION trg_check_for_duplicates();
+
+-- Trigger to check for duplicates before updating a business
+CREATE TRIGGER trg_check_for_duplicates_update
+BEFORE  UPDATE 
+ON buis_location_point
+FOR EACH  ROW
+EXECUTE FUNCTION trg_check_for_duplicates();
+
+COMMIT;
+
+-- Testing to ensure this is working by using the function.
+CALL insert_business(
+    'Tes1',
+    'This is A Test',
+    'Web Development Buisness',
+    -74.00601347,
+    40.71287853  
+      
+);
