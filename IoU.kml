@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <!-- Style definitions -->
+    <Style id="town1Style">
+      <LineStyle>
+        <color>ff0000ff</color> 
+        <width>2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>7fff0000</color> 
+      </PolyStyle>
+    </Style>
+    <Style id="town2Style">
+      <LineStyle>
+        <color>ff00ff00</color> 
+        <width>2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>7f00ff00</color> 
+      </PolyStyle>
+    </Style>
+    <Style id="intersection">
+      <LineStyle>
+        <color>ff0000ff</color> 
+        <width>2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>7f0000ff</color> 
+      </PolyStyle>
+    </Style>
+
+    <!-- Town 1 Polygon -->
+    <Placemark>
+      <name>Newee Creek</name>
+      <styleUrl>#town1Style</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              152.9755281502089,-30.62468874872213 
+              152.9527792510253,-30.65842758133529 
+              152.95101865065882,-30.658497772440438 
+              152.9526697977662,-30.64870250115364 
+              152.97174724719122,-30.62402716660352 
+              152.9755281502089,-30.62468874872213
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+    <!-- Town 2 Polygon -->
+    <Placemark>
+      <name>Nambucca Heads</name>
+      <styleUrl>#town2Style</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              152.9119597453911,-30.66005496155552 
+              152.9170335555359,-30.63390792983415 
+              152.9036980539334,-30.62377432384356 
+              152.8897099979226,-30.62714952314303 
+              152.8846026674029,-30.62594600449782 
+              152.8889615145505,-30.60168896515074 
+              152.936834634779,-30.61791816037461 
+              152.97174724719122,-30.62402716660352 
+              152.9841864040857,-30.60793799498238 
+              152.9868710044668,-30.61394850461807 
+              153.0110629531627,-30.61706884573531 
+              153.0203410422929,-30.64945060581284 
+              153.0025968838241,-30.64991745020664 
+              152.9891519430172,-30.6619477727596 
+              152.9755641379236,-30.68208168235731 
+              152.9481868184284,-30.6752973445753 
+              152.95101865065882,-30.658497772440438 
+              152.9119597453911,-30.66005496155552
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+    <!-- Intersection Polygon -->
+    <Placemark>
+      <name>Intersection</name>
+      <styleUrl>#intersection</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              152.9526697977662,-30.64870250115364 
+              152.97174724719122,-30.62402716660352 
+              152.9755281502089,-30.62468874872213 
+              152.9527792510253,-30.65842758133529 
+              152.95101865065882,-30.658497772440438 
+              152.9526697977662,-30.64870250115364
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+    <!-- Boundary Union Polygon -->
+    <Placemark>
+      <name>Boundary Union</name>
+      <styleUrl>#intersection</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              152.9841864040857,-30.60793799498238 
+              152.9868710044668,-30.61394850461807 
+              153.0110629531627,-30.61706884573531 
+              153.0203410422929,-30.64945060581284 
+              153.0025968838241,-30.64991745020664 
+              152.9891519430172,-30.6619477727596 
+              152.9755641379236,-30.68208168235731 
+              152.9481868184284,-30.6752973445753 
+              152.95101865065882,-30.658497772440438 
+              152.9119597453911,-30.66005496155552 
+              152.9170335555359,-30.63390792983415 
+              152.9036980539334,-30.62377432384356 
+              152.8897099979226,-30.62714952314303 
+              152.8846026674029,-30.62594600449782 
+              152.8889615145505,-30.60168896515074 
+              152.936834634779,-30.61791816037461 
+              152.97174724719122,-30.62402716660352 
+              152.9841864040857,-30.60793799498238
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+
+  </Document>
+</kml>

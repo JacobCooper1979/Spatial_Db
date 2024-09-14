@@ -23,10 +23,9 @@ COMMENT ON DATABASE "JacobCooper_SpatialDb_ID:30466032"
 
 COMMIT;
 
-BEGIN TRANSACTION;
 -- Adding the extension postgis to make this database a spatial database. 
 CREATE EXTENSION postgis;
-COMMIT;
+
 
 -- after creating the new database these drop commands will ensure that these tables and types do not exist in the database.
 BEGIN TRANSACTION;
@@ -41,13 +40,8 @@ COMMIT;
 
 
 BEGIN TRANSACTION;
-/* Setting the town_type as Enums differentiates between my home town, local towns, and cities. SArea is for the surrounding areas. */
-CREATE TYPE TOWN_TYPE AS ENUM (
-	'Home Town',
-	'Town',
-	'City'
-);
-
+/* Setting the town_type as Enums differentiates between my home town, local towns, and city */
+CREATE TYPE TOWN_TYPE AS ENUM ('Home Town','Town','City');
 --Creating Tables for Polygon locations. 
 CREATE TABLE ruff_town_Locations (
     id SERIAL PRIMARY KEY,
@@ -55,15 +49,11 @@ CREATE TABLE ruff_town_Locations (
 	town_type TOWN_TYPE,
     boundary GEOMETRY(Polygon, 4326) 
 );
-
-
 /* 
 Type Enum Explanation.
-Type Enum Explanation.
 Most IT businesses deliver various services, but I selected the main focus for the IT business and categorised them into type enums. 
-These businesses are versatile and can adapt to various needs, offering a wide range of services beyond the ones listed.
 
-Website Development Business: Creates and maintains websites, including design, Development, and integration of features.
+Website Development Business: Their main focus is to creates and maintains websites, including design, Development, and integration of features that can include hosting and marketing along with other types of IT services.
 
 Hosting Business: This business type mainly focuses on providing cloud-orientated solutions for business, which can include server migration data backups, 
 server space, and domain management, among other cloud services. It may also provide other IT services.
@@ -85,16 +75,7 @@ And other communication services such as phone systems and internet connectivity
  */
 
 CREATE TYPE BUSINESS_TYPE AS ENUM (
-    'Website Development Business',          
-    'Hosting Business',                      
-    'Software Development Business',         
-    'Device Repair Business',                
-    'General IT Consultation & Services',    
-    'Digital Marketing & SEO',               
-    'Telecommunications Business'            
-);
-	
-
+    'Website Development Business', 'Hosting Business', 'Software Development Business','Device Repair Business','General IT Consultation & Services','Digital Marketing & SEO', 'Telecommunications Business');
 /* Creating points Table For the Location of the IT businesses in my area.*/
 CREATE TABLE buis_location_point (
     id SERIAL PRIMARY KEY,
@@ -105,10 +86,8 @@ CREATE TABLE buis_location_point (
 );
 COMMIT;
 
-
 /* Inserting data into ruff_town_Locations table for the towns i have selected */
 BEGIN TRANSACTION;
-
 INSERT INTO ruff_town_Locations (town_name, town_type, boundary)
 VALUES (
     'Newee Creek',
@@ -313,29 +292,6 @@ VALUES (
     )
 );
 
-------------------change to byron bay to make kml union over intersection easier.
-/*INSERT INTO ruff_town_Locations (town_name, town_type, boundary)
-VALUES (
-    'Surrounding Areas',
-    'SArea',
-    ST_SetSRID(
-        ST_MakePolygon(
-            ST_MakeLine(ARRAY[
-                ST_MakePoint(152.5138013840269, -32.39551617517989),
-                ST_MakePoint(153.0895396188487, -31.10488689704723),
-                ST_MakePoint(153.3065602260517, -29.77571911745998),
-                ST_MakePoint(153.681073471285, -28.2836107361294),
-                ST_MakePoint(153.483640228017, -27.00135284397611),
-                ST_MakePoint(151.9392067174224, -26.73277906517035),
-                ST_MakePoint(151.3239822036268, -30.36473866409712),
-                ST_MakePoint(150.3409504638375, -33.97013761384776),
-                ST_MakePoint(151.005430690718, -34.25581144197075),
-                ST_MakePoint(152.5138013840269, -32.39551617517989)
-            ])
-        ), 4326
-    )
-);
-*/
 INSERT INTO ruff_town_Locations (town_name, town_type, boundary)
 VALUES (
     'Byron Bay',
@@ -539,7 +495,7 @@ VALUES (
     ST_SetSRID(ST_MakePoint(153.10927845264825, -30.297937430942458), 4326)
 );
 
--
+
 INSERT INTO buis_location_point (name, description, business_type, location)
 VALUES (
     'CoffsWebolution',
@@ -548,23 +504,21 @@ VALUES (
     ST_SetSRID(ST_MakePoint(153.11498619339332, -30.29008173253421), 4326)
 );
 
---------------------------------------------------------------------------------
--- accidently created a double find one more buissness
 INSERT INTO buis_location_point (name, description, business_type, location)
 VALUES (
     'BrainStack Pty Ltd',
     'This business focuses on graphics design, computer repairs, IT consulting services, Website Development and Mobile App Development.',
 	'General IT Consultation & Services',
-    ST_SetSRID(ST_MakePoint(-30.29052641153611, 153.1151578548217), 4326)
+    ST_SetSRID(ST_MakePoint(153.1151578548217, -30.29052641153611), 4326)
  );
 
 INSERT INTO buis_location_point (name, description, business_type, location)
 VALUES (
-    'BrainStack Pty Ltd',
-    'This business focuses on graphics design, computer repairs, IT consulting services, Website Development and Mobile App Development.',
-    'General IT Consultation & Services',
-    ST_SetSRID(ST_MakePoint(153.1151578548217, -30.29052641153611), 4326)
-);
+    'AusScan',
+    'couldn’t find any information about this business other than a phone number.',
+	'Software Development Business',
+    ST_SetSRID(ST_MakePoint(152.8690636028428, -30.79945932534402), 4326)
+ );
 
 INSERT INTO buis_location_point (name, description, business_type, location)
 VALUES (
@@ -1205,33 +1159,6 @@ INNER JOIN ruff_town_Locations town ON ST_Within(buis_loc.location, town.boundar
 WHERE town.town_name = 'Coffs Harbour';
 
 
-SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type, buis_loc.location
-FROM   buis_location_point buis_loc
-INNER JOIN ruff_town_Locations town ON ST_Within(buis_loc.location, town.boundary)
-WHERE town.town_name IN ('Nambucca Heads', 'Coffs Harbour');
-
-
-WITH necee_creek_location AS (
-    SELECT ST_SetSRID(ST_MakePoint(153.02763742582962, -27.46553882442668), 4326) AS necee_creek_point
-)
-SELECT 
-    buis_loc.name AS business_name,
-    buis_loc.description,
-    town.town_name,
-    buis_loc.business_type,
-    buis_loc.location
-FROM 
-    buis_location_point buis_loc
-INNER JOIN 
-    ruff_town_Locations town 
-    ON ST_Within(buis_loc.location, town.boundary)
-CROSS JOIN 
-    necee_creek_location
-WHERE 
-    town.town_name IN ('Nambucca Heads', 'Coffs Harbour')
-    AND ST_Distance(buis_loc.location, necee_creek_location.necee_creek_point) <= 50000;
-
-
 /* 
 Full Outer Join:
 the purpose of this query is to show that as this is a spatial database, 
@@ -1246,7 +1173,7 @@ WHERE town.town_name = 'Coffs Harbour' OR buis_loc.name IS NOT NULL;
 
 /* 
 The purpose of this query is to simulated a full outer join by creating a left outer join and a right outer join and using the UNION function.
-This creates a union between the two joins and merges them together. 
+This creates a union between the two joins and merges them together to demonstrate that feilds will be added even if their is a null feild. 
 */
 -- Left Outer Join 
 SELECT buis_loc.name AS business_name, buis_loc.description, town.town_name, buis_loc.business_type,  buis_loc.location
@@ -1280,7 +1207,6 @@ FROM  buis_location_point GROUP BY  business_type
 HAVING  COUNT(*) > 2  ORDER BY busis_count DESC;  
 
 
--- Write an SQL statement that uses an inner SQL query (SELECT). Explain the purpose of your query for your database solution.
 
 
 /*
@@ -1291,28 +1217,23 @@ buissness using and AND LOCATION IN statement to selection the location from ruf
 */
 SELECT name,business_type, location
 FROM  buis_location_point
-WHERE business_type = 'Software Development Business'
-AND location IN (
-    SELECT location  FROM  ruff_town_Locations
-    WHERE town_name = 'Coffs Harbour'
-    AND  ST_Within(buis_location_point.location,ruff_town_Locations.boundary)
+WHERE  business_type = 'Software Development Business'
+AND location IN ( SELECT location  FROM  ruff_town_Locations WHERE town_name = 'Coffs Harbour'
+AND   ST_Within(buis_location_point.location,ruff_town_Locations.boundary)
 );
 
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---Spatial Database Tasks.
+-- Spatial Database Tasks.
 /*
 You will need to be able to query your database as follows:
 • Given a specific point (set of x,y coordinates), you are to find all polygons within which this Point is contained.
 • Retrieve the nearest polygon if the Point does not lie within a specific polygon.
 */
 
-/*
-Trying to find this exact buissness the name of the buisness is SAP Australia Pty Ltd - Brisbane location and in what polygon area the buissness is stored in.
-By selecting the id, town name and boundry from the contained poloygons in the spatial database. from the table ruff_town_locations.
-Using the exact cordinates that are  153.02763742582962, -27.46553882442668,
-*/ 
+
+-- trying to find the boundry that this point belongs in.
 WITH contained_polygons AS (
     SELECT id, town_name, town_type, boundary
     FROM ruff_town_Locations
@@ -1321,18 +1242,13 @@ WITH contained_polygons AS (
 )
 SELECT * FROM contained_polygons;
 
-
---The purpose of this query is to identify buissness within 50KM from my homes polygon which is newee creek.
-WITH home_location AS (
-    SELECT boundary
+-- Query to find the nearest polygons to for the coordinates of the point that is not contained in any polygon
+WITH nearest_polygon AS (
+    SELECT id, town_name, town_type, boundary,  ST_Distance(boundary, ST_SetSRID(ST_MakePoint(-27.46553882442668, 153.02763742582962), 4326)) AS distance
     FROM ruff_town_Locations
-    WHERE town_name = 'Newee Creek'
+    ORDER BY distance ASC LIMIT 2
 )
-SELECT buis_loc.name AS business_name,  buis_loc.description,buis_loc.business_type,buis_loc.location, town.town_name
-FROM  buis_location_point buis_loc
-INNER JOIN  ruff_town_Locations town  ON ST_Within(buis_loc.location, town.boundary)
-CROSS JOIN  home_location
-WHERE  ST_DWithin(buis_loc.location, home_location.boundary, 50000);  
+SELECT * FROM nearest_polygon;
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1379,27 +1295,6 @@ ALTER TABLE buis_location_point
     ALTER COLUMN business_type TYPE VARCHAR(100);
 -- Dropping the Type Enum. 
 DROP TYPE IF EXISTS BUSINESS_TYPE;
-
--- Dropping PL/SQL code for testing.
-BEGIN TRANSACTION;
--- Drop triggers.
-DROP TRIGGER IF EXISTS trg_enforce_bounding_box ON buis_location_point;
-DROP TRIGGER IF EXISTS trg_check_for_duplicates ON buis_location_point;
-DROP TRIGGER IF EXISTS trg_check_for_duplicates_update ON buis_location_point;
-
--- Drop trigger functions.
-DROP FUNCTION IF EXISTS trg_check_within_bounding_box();
-DROP FUNCTION IF EXISTS trg_check_for_duplicates();
-
--- Drop the sequence.
-DROP SEQUENCE IF EXISTS location_id_seq;
-
--- Drop procedures and functions.
-DROP PROCEDURE IF EXISTS insert_business;
-DROP FUNCTION IF EXISTS find_bounding_box;
-COMMIT;
-
-
 
 -- Creating the sequence and ensuring the max ID gets set correctly.
 BEGIN TRANSACTION;
@@ -1649,7 +1544,24 @@ CALL insert_business(
       
 );
 
+-- Dropping PL/SQL code for testing.
+BEGIN TRANSACTION;
+-- Drop triggers.
+DROP TRIGGER IF EXISTS trg_enforce_bounding_box ON buis_location_point;
+DROP TRIGGER IF EXISTS trg_check_for_duplicates ON buis_location_point;
+DROP TRIGGER IF EXISTS trg_check_for_duplicates_update ON buis_location_point;
 
+-- Drop trigger functions.
+DROP FUNCTION IF EXISTS trg_check_within_bounding_box();
+DROP FUNCTION IF EXISTS trg_check_for_duplicates();
+
+-- Drop the sequence.
+DROP SEQUENCE IF EXISTS location_id_seq;
+
+-- Drop procedures and functions.
+DROP PROCEDURE IF EXISTS insert_business;
+DROP FUNCTION IF EXISTS find_bounding_box;
+COMMIT;
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1678,6 +1590,205 @@ FROM polygon_intersections;
 
 ---- Saved results as csv file and manually created a KML files to represent this data as the function would not work to export it.
 
+ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ --Theory
+/* 
+For the theory aspect of this assessment, I have chosen to create 3 PL/SQL stored procedures as I could potentially see needing these in my scenario.
+*/
+
+/* The functionality to retrieve all business within a certain distance from a specific point this feature would allow me to be able to pick a locational point and get and find the business within a certain radius, 
+helping me to decide if I need to move to a specific town or city to find work.*/
+BEGIN TRANSACTION;
+CREATE OR REPLACE FUNCTION get_all_buis_within_distance(
+    -- creating variables for the function.
+    latitude DOUBLE PRECISION,
+     longitude DOUBLE PRECISION,
+    radius DOUBLE PRECISION
+) 
+RETURNS TABLE(business_name VARCHAR(100),  distance DOUBLE PRECISION)  AS $$
+DECLARE point GEOMETRY(Point, 4326);
+BEGIN
+    -- Create a point using the provided latitude and longitude.
+    point := ST_SetSRID(ST_MakePoint(latitude,  longitude), 4326);
+    -- Return all businesses within the specified distance (radius) in meters
+    RETURN  QUERY
+    SELECT name,  ST_Distance(location, point)
+    FROM  buis_location_point
+    WHERE ST_DWithin(location,  point,  radius);
+END;
+$$ LANGUAGE plpgsql;
+COMMIT;
+
+-- Testing to ensure this works. also the way to use this function.
+SELECT * 
+FROM get_all_buis_within_distance(-30.631909577074975, 152.94549576884575, 5);
+
+
+/* The functionality is to be able to update a business location based on its ID in case data is ever entered wrong. 
+I can now easily call a function to replace the locational data for the business that has the specific ID.*/
+CREATE OR REPLACE PROCEDURE update_buis_location(
+    -- declaring variables for the function.
+    business_id INTEGER,
+    new_latitude DOUBLE PRECISION,
+    new_longitude DOUBLE PRECISION
+) 
+AS $$
+DECLARE
+    new_point  GEOMETRY(Point, 4326);
+    business_exists BOOLEAN;
+BEGIN
+    -- Generate the new business location point.
+    new_point := ST_SetSRID(ST_MakePoint(new_latitude, new_longitude), 4326);
+    -- Ensure the new location does not overlap with another business.
+    SELECT EXISTS (
+        SELECT 1 FROM buis_location_point
+        WHERE  ST_DWithin(location, new_point, 0.0001)
+        AND id <> business_id
+    ) INTO business_exists;
+
+    IF business_exists 
+    THEN  RAISE NOTICE 'A business already exists at this location.';
+        RETURN;
+    END IF;
+    -- Update the business location if there are no conflict found.
+    UPDATE  buis_location_point
+    SET  location =  new_point
+    WHERE  id = business_id;
+    -- raise a notice if the update is succseful.
+    RAISE NOTICE 'Business location has been updated successfully';
+EXCEPTION
+    WHEN OTHERS 
+    -- Raise a notice if there was an error during this process
+    THEN  RAISE NOTICE 'Error while updating location: %', SQLERRM;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- using the call statement to start this procedure.
+CALL update_buis_location(1, -30.630000, 152.950000);
+-- dropping command for testing.
+DROP PROCEDURE IF EXISTS update_buis_location;
+
+
+/* the functionality to delete all businesses by their type in case I decide I really do not want to work in a repair store. I can remove them all completely, as the goal of the scenario was to find all IT businesses and define their roles. 
+This functionality, even though it seems simple, will give me the ability to find all of the IT businesses in any area, categorise them, and if I choose in a year or so time that I want to work in a different IT role or specialise in another field, 
+I can easily drop all business that has that business type. */
+CREATE OR REPLACE PROCEDURE delete_buis_by_type(
+    new_buis_type VARCHAR(100)  
+) 
+AS $$
+DECLARE
+    del_count INT;
+BEGIN
+    -- Delete all businesses of the specified type.
+    DELETE FROM buis_location_point
+    WHERE business_type = new_buis_type;
+
+    -- Get the number of rows deleted.
+    GET DIAGNOSTICS del_count = ROW_COUNT;
+
+    -- Raise a notice with the number of deleted businesses.
+    RAISE NOTICE '% business types % have been deleted', del_count, new_buis_type;
+    
+    -- If no rows were deleted, raise a different notice.
+    IF del_count = 0 
+    THEN 
+        RAISE NOTICE 'No business type % found to be deleted', new_buis_type;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- using the call statement to start the procedure to delete all buissenss with the same buisness_type.
+CALL delete_buis_by_type('Software Development Business');
+SELECT * FROM buis_location_point;
+-- Drop for testing.
+DROP PROCEDURE IF EXISTS delete_buis_by_type(VARCHAR(100));
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- None PL/SQL and none spatial data extension queries.
+-- Dropping the tiggers iv created that rely on PL/SQL or spatial database extensions triggers.
+DROP TRIGGER IF EXISTS trg_enforce_bounding_box ON buis_location_point;
+DROP TRIGGER IF EXISTS trg_check_for_duplicates ON buis_location_point;
+DROP TRIGGER IF EXISTS trg_check_for_duplicates_update ON buis_location_point;
+
+-- Altering tables to remove the spatial data extension to create standard SQL queries to handle the PL/SQL without spatial data extensions or PL/SQL functionality.
+
+-- Converting spatial geographical data into non sptail geographical data by converting location geometry to latitude and longitude in one transation.
+BEGIN TRANSACTION;
+-- Altering table to add latitude and longitude columns to store the converted data.
+ALTER TABLE buis_location_point
+ADD COLUMN latitude DOUBLE PRECISION,
+ADD COLUMN longitude DOUBLE PRECISION;
+-- Updating buis_location_point table and converting from spatial data to double precision data to store in latitude and longitude.
+UPDATE buis_location_point
+SET latitude = ST_Y(location::geometry),  longitude = ST_X(location::geometry);
+-- Updating latitude and longitude based on the geographical spatial data.
+UPDATE buis_location_point
+SET latitude =  ST_Y(ST_SetSRID(location, 4326)), longitude =  ST_X(ST_SetSRID(location, 4326));
+-- Dropping the spatial data location column from the table.
+ALTER TABLE buis_location_point
+DROP COLUMN location;
+COMMIT;
+
+-- Selecting to ensure it worked
+SELECT id, name, latitude, longitude
+FROM buis_location_point;
+
+
+/* The functionality to retrieve all business within a certain distance from a specific point this feature would allow me to be able to pick a locational point and get and find the business within a certain radius, 
+helping me to decide if I need to move to a specific town or city to find work. without using PL/SQL or spatial database extension postgis*/
+-- This query updates the buis_point_location checks to ensure the tables doesnt already contain the same latitude and longitude and updates based on the ID provided.
+
+-- Assuming there is no curvatire of the earth 1 degree longitude ruffly equals 111 km, and latitude ruffly equals 111 km.
+-- Define the constants for the distance calculations.
+WITH constants AS (
+    SELECT 111.0 
+    AS km_per_degree_lat, (111.0 * COS(RADIANS(-30.631909577074975))) 
+    AS km_per_degree_lon
+), 
+-- Calculate distances based on the absolute value for the latitude and longitude.
+distances AS (
+    SELECT name, 
+            -- Calculating the distance for the latitude using absolute values.
+           ABS(latitude - -30.631909577074975) * (SELECT km_per_degree_lat FROM constants) 
+           AS lat_dist,
+           -- Calculating the distance for the longitude using absolute values.
+           ABS(longitude - 152.94549576884575) * (SELECT km_per_degree_lon FROM constants) 
+           AS lon_dist
+    FROM buis_location_point
+)
+-- Calculate the total approximate distance in a straight line pythagors theory which is. 
+-- The distance equals the square root of the squared latitude and the squared longitude plsued together.
+SELECT name,  SQRT(POW(lat_dist, 2) + POW(lon_dist, 2)) 
+AS total_distance
+FROM  distances
+-- Filtering the results to be within a set amount of km that is 5km.
+WHERE SQRT(POW(lat_dist, 2) + POW(lon_dist, 2)) <= 5.0;  
+
+
+/* refference for this queirey 
+https://www.johndcook.com/how_big_is_a_degree.html
+*/
+
+/* The functionality is to be able to update a business location based on its ID in case data is ever entered wrong. 
+I can now easily call a function to replace the locational data for the business that has the specific ID. 
+Without using PL/SQL or spatial database extensions like postgis. */
+
+UPDATE buis_location_point
+SET latitude = -30.63000032151, longitude = 152.9500005623153
+WHERE id = 4;
+
+SELECT id, name, latitude, longitude
+FROM buis_location_point
+WHERE id = 4;
+
+/* the functionality to delete all businesses by their type in case I decide I really do not want to work in a repair store. I can remove them all completely, as the goal of the scenario was to find all IT businesses and define their roles. 
+This functionality, even though it seems simple, will give me the ability to find all of the IT businesses in any area, categorise them, and if I choose in a year or so time that I want to work in a different IT role or specialise in another field, 
+I can easily drop all business that has that business type. Without using PL/SQL or spatial database extensions like postgis.*/
+DELETE  FROM buis_location_point
+WHERE business_type  = 'Digital Marketing & SEO';
 
 
 
